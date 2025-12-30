@@ -95,6 +95,11 @@ resp-benchmark 使用强大的占位符系统来生成多样化和真实的测�
 - **`{range N W}`**: 范围 N 内相差 W 的两个数字
   - 示例: `{range 100 10}` → `45 55`
 
+### 引用其他占位符
+
+- **`{reference KEY}`**: 使用其他占位符的展开结果
+  - 示例: `{reference KEY_FOO}` → `{key sequence 100000 alias KEY_FOO}` → `key_0000000000`
+
 ### 命令示例
 
 ```bash

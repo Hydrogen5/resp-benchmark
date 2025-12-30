@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn test_root() {
-        let (nm, args) = match parse_all("aa test_{key sequence 100} bbb") {
+        let (nm, args) = match parse_all("aa test_{key sequence 100} bbb {key sequence 100 alias pk} {reference pk}") {
             Ok((nm, args)) => (nm, args),
             Err(e) => {
                 println!("Error: {:?}", e);

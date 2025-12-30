@@ -1,6 +1,6 @@
 use crate::command::placeholder::PlaceholderEnum;
 use redis;
-use std::sync::{Arc, Mutex};
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 mod distribution;
 mod parser;
@@ -34,8 +34,13 @@ impl Command {
     pub fn gen_cmd(&mut self) -> redis::Cmd {
         let mut cmd = redis::Cmd::new();
         let mut cmd_str = String::new();
+        let mut arg_map: HashMap<String, Vec<String>> = HashMap::new();
         for ph in self.argv.iter_mut() {
-            for arg in ph.generate() {
+            let args = ph.generate(&arg_map);
+            if let Some(name) = args.name {
+                arg_map.insert(name, args.value.clone());
+            }
+            for arg in args.value {
                 cmd_str.push_str(&arg);
             }
         }
@@ -49,8 +54,14 @@ impl Command {
         let _lock = self.lock.lock().unwrap();
         let mut cmd = redis::Cmd::new();
         let mut cmd_str = String::new();
+        let mut arg_map = HashMap::new();
         for ph in self.argv.iter_mut() {
-            for arg in ph.generate() {
+            let args = ph.generate(&arg_map);
+            if let Some(name) = args.name {
+                eprintln!("{} {:?}", name, args.value);
+                arg_map.insert(name, args.value.clone());
+            }
+            for arg in args.value {
                 cmd_str.push_str(&arg);
             }
         }

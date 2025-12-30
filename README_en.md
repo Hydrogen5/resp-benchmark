@@ -97,7 +97,12 @@ resp-benchmark uses a powerful placeholder system to generate varied and realist
   - Example: `{rand 1000}` → `742`
   
 - **`{range N W}`**: Two numbers within range N with difference W
-  - Example: `{range 100 10}` → `45 55`
+  - Example: `{range 1000 100}` → `45 55`
+
+### Reference Other Placeholders
+
+- **`{reference KEY}`**: Use the expanded result of other placeholders
+  - Example: `{reference KEY_FOO}` → `{key sequence 100000 alias KEY_FOO}` → `key_0000000000`
 
 ### Example Commands
 
