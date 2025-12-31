@@ -6,6 +6,49 @@ mod distribution;
 mod parser;
 mod placeholder;
 
+fn split_args(cmd: &String) -> Vec<&str> {
+    let mut args = Vec::new();
+    let bytes = cmd.as_bytes();
+    let mut i = 0;
+    
+    while i < bytes.len() {
+        // Skip leading whitespace characters
+        while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\t') {
+            i += 1;
+        }
+        
+        if i >= bytes.len() {
+            break;
+        }
+        
+        let start = i;
+        
+        // Check if it's the special syntax starting with #"
+        if i + 1 < bytes.len() && bytes[i] == b'#' && bytes[i + 1] == b'"' {
+            i += 2; // Skip #"
+            let content_start = i;
+            
+            // Find the ending "#
+            while i + 1 < bytes.len() {
+                if bytes[i] == b'"' && bytes[i + 1] == b'#' {
+                    args.push(&cmd[content_start..i]);
+                    i += 2; // Skip "#
+                    break;
+                }
+                i += 1;
+            }
+        } else {
+            // Regular argument: until encountering whitespace
+            while i < bytes.len() && bytes[i] != b' ' && bytes[i] != b'\t' {
+                i += 1;
+            }
+            args.push(&cmd[start..i]);
+        }
+    }
+    
+    args
+}
+
 #[derive(Clone, Debug)]
 pub struct Command {
     str: String,
@@ -44,7 +87,7 @@ impl Command {
                 cmd_str.push_str(&arg);
             }
         }
-        for word in cmd_str.split_whitespace() {
+        for word in split_args(&cmd_str) {
             cmd.arg(word);
         }
         cmd
@@ -65,12 +108,66 @@ impl Command {
                 cmd_str.push_str(&arg);
             }
         }
-        for word in cmd_str.split_whitespace() {
+        for word in split_args(&cmd_str) {
             cmd.arg(word);
         }
         cmd
     }
     pub fn to_string(&self) -> String {
         self.str.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_split_args_normal() {
+        let cmd = "SET key value".to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["SET", "key", "value"]);
+    }
+
+    #[test]
+    fn test_split_args_with_quoted() {
+        let cmd = r##"SET #"key with spaces"# value"##.to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["SET", "key with spaces", "value"]);
+    }
+
+    #[test]
+    fn test_split_args_multiple_quoted() {
+        let cmd = r##"SET #"key with spaces"# #"value with spaces"#"##.to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["SET", "key with spaces", "value with spaces"]);
+    }
+
+    #[test]
+    fn test_split_args_mixed_args() {
+        let cmd = r##"SET key1 #"value with spaces"# key2 normal_value"##.to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["SET", "key1", "value with spaces", "key2", "normal_value"]);
+    }
+
+    #[test]
+    fn test_split_args_empty_quoted_part() {
+        let cmd = r##"CMD #""# normal"##.to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["CMD", "", "normal"]);
+    }
+
+    #[test]
+    fn test_split_args_empty_quoted_part_with_quotes() {
+        let cmd = r##"CMD key #"{"abc": "def"}"#"##.to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["CMD", "key", "{\"abc\": \"def\"}"]);
+    }
+
+    #[test]
+    fn test_split_args_no_quotes() {
+        let cmd = "GET key1 key2 key3".to_string();
+        let args = split_args(&cmd);
+        assert_eq!(args, vec!["GET", "key1", "key2", "key3"]);
     }
 }

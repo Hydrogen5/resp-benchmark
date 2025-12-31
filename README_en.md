@@ -104,6 +104,14 @@ resp-benchmark uses a powerful placeholder system to generate varied and realist
 - **`{reference KEY}`**: Use the expanded result of other placeholders
   - Example: `{reference KEY_FOO}` → `{key sequence 100000 alias KEY_FOO}` → `key_0000000000`
 
+### Generating JSON Format Data
+
+- **`\{\}`**: Use escape characters to prevent braces from being parsed as placeholders
+  - Example: `key_\{abc\}` → `key_{}`
+
+- **`#"FOO BAR"#`**: Prevent spaces from being split into separate arguments
+  - Example: `set key #"a b"#` → `key -> "a b"`
+
 ### Example Commands
 
 ```bash
@@ -127,6 +135,9 @@ ZRANGEBYSCORE {key uniform 1000} {range 1000 100}
 # Hash operations
 HSET {key uniform 1000} {key uniform 100} {value 64}
 HGET {key uniform 1000} {key uniform 100}
+
+# Generating JSON data
+SET {key sequence 1000 alias user_id} #"\{"user_id": "{reference user_id}"\}"#
 ```
 
 ## Command Line Options

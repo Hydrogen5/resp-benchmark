@@ -100,6 +100,14 @@ resp-benchmark 使用强大的占位符系统来生成多样化和真实的测�
 - **`{reference KEY}`**: 使用其他占位符的展开结果
   - 示例: `{reference KEY_FOO}` → `{key sequence 100000 alias KEY_FOO}` → `key_0000000000`
 
+### 生成json格式数据
+
+- **`\{\}`**: 使用转义字符避免大括号被解析成占位符
+  - 示例: `key_\{abc\}` → `key_{}`
+
+- **`#"FOO BAR"#`**: 避免空格被拆分为两个参数
+  - 示例: `set key #"a b"#` → `key -> "a b"`
+
 ### 命令示例
 
 ```bash
@@ -123,6 +131,9 @@ ZRANGEBYSCORE {key uniform 1000} {range 1000 100}
 # 哈希操作
 HSET {key uniform 1000} {key uniform 100} {value 64}
 HGET {key uniform 1000} {key uniform 100}
+
+# 生成json数据
+SET {key sequence 1000 alias user_id} #"\{"user_id": "{reference user_id}"\}"#
 ```
 
 ## 命令行选项
